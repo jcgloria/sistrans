@@ -18,6 +18,28 @@ public class DAOPersona {
 	public DAOPersona() {
 		recursos = new ArrayList<Object>();
 	}
+	
+	public ArrayList<Persona> rfc8(String oferta) throws SQLException, Exception{
+		ArrayList<Persona> personas = new ArrayList<Persona>();
+
+		String sql = String.format("SELECT PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION "
+				                 + "FROM (%1$s.RESERVAS INNER JOIN %2$s.PERSONAS ON RESERVAS.PERSONA = PERSONAS.ID) "
+				                 + "WHERE RESERVAS.TIPO_OFERTA = '%3$s' "  
+				                 + "AND RESERVAS.FECHA_FIN - RESERVAS.FECHA_INICIO >=15 "  
+				                 + "GROUP BY PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION " 
+				                 + "ORDER BY PERSONAS.ID" , USUARIO, USUARIO, oferta);
+
+		PreparedStatement prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		ResultSet rs = prepStmt.executeQuery();
+
+		while (rs.next()) {
+			personas.add(convertResultSetToPersona(rs));
+		}
+		return personas;
+	}
+
+
 
 	public ArrayList<Persona> getPersonas() throws SQLException, Exception {
 		ArrayList<Persona> personas = new ArrayList<Persona>();

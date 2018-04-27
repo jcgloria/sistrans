@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,8 @@ public class AlohAndesTransactionManager {
 	private String driver;
 
 	private Connection conn;
+	
+	public final static String USUARIO = "ISIS2304A091810";
 
 	public AlohAndesTransactionManager(String contextPathP) {
 
@@ -609,6 +613,172 @@ public class AlohAndesTransactionManager {
 				}
 			}
 		}
+	}
+	
+	public List<Persona> clientesFrecuentes(String oferta) throws Exception{
+		DAOPersona daoPersona = new DAOPersona();
+		List<Persona> personas;
+		try 
+		{
+			this.conn = darConexion();
+			daoPersona.setConn(conn);
+			personas = daoPersona.rfc8(oferta);
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoPersona.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return personas;
+	}
+
+	public String analizarOperacion(String unidadT, String oferta) throws Exception {
+
+		String mensaje = "";
+		try 
+		{
+			this.conn = darConexion();
+			if(unidadT.equals("mes") ) {
+				String m1 = "";
+				String m2 = "";
+				String m3 = "";
+
+				String sql = String.format("SELECT EXTRACT(MONTH FROM FECHA_INICIO)AS MES, COUNT(EXTRACT(MONTH FROM FECHA_INICIO)) AS CANT_RESERVAS " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY EXTRACT(MONTH FROM FECHA_INICIO) " + 
+						"ORDER BY CANT_RESERVAS desc",USUARIO, oferta );
+
+				PreparedStatement prepStmt = conn.prepareStatement(sql);
+				ResultSet rs = prepStmt.executeQuery();
+				if(rs.next()) {
+					String mes = rs.getString("MES");
+					String cant = rs.getString("CANT_RESERVAS");
+					m1 = "El mes con mayor demanda fue " + mes + "con " + cant + " de reservas.";
+				}
+
+				String sql2 = String.format("SELECT EXTRACT(MONTH FROM FECHA_INICIO)AS MES, SUM(COSTO_CALCULADO) AS INGRESO_TOTAL " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY EXTRACT(MONTH FROM FECHA_INICIO) " + 
+						"ORDER BY INGRESO_TOTAL desc",USUARIO, oferta );
+
+				PreparedStatement prepStmt2 = conn.prepareStatement(sql2);
+				ResultSet rs2 = prepStmt2.executeQuery();
+				if(rs2.next()) {
+					String mes = rs2.getString("MES");
+					String cant = rs2.getString("INGRESO_TOTAL");
+					m2 = "El mes con más ingresos fue " + mes + "con " + cant ;
+				}
+
+				String sql3 = String.format("SELECT EXTRACT(MONTH FROM FECHA_INICIO)AS MES, COUNT(EXTRACT(MONTH FROM FECHA_INICIO)) AS CANT_RESERVAS " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY EXTRACT(MONTH FROM FECHA_INICIO) " + 
+						"ORDER BY CANT_RESERVAS asc",USUARIO, oferta );
+
+				PreparedStatement prepStmt3 = conn.prepareStatement(sql3);
+				ResultSet rs3 = prepStmt3.executeQuery();
+				if(rs3.next()) {
+					String mes = rs3.getString("MES");
+					String cant = rs3.getString("CANT_RESERVAS");
+					m3 = "El mes con menor demanda fue " + mes + "con " + cant + " de reservas.";
+				}
+				mensaje = m1 + "\n" + m2 + "\n" + m3;
+			}
+			else if(unidadT.equals("semana")) {
+				String m1 = "";
+				String m2 = "";
+				String m3 = "";
+
+				String sql = String.format("SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA, COUNT(to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW'))) AS CANT_RESERVAS " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) " + 
+						"ORDER BY CANT_RESERVAS desc",USUARIO, oferta );
+
+				PreparedStatement prepStmt = conn.prepareStatement(sql);
+				ResultSet rs = prepStmt.executeQuery();
+				if(rs.next()) {
+					String sem = rs.getString("SEMANA");
+					String cant = rs.getString("CANT_RESERVAS");
+					m1 = "La semana con mayor demanda fue " + sem + "con " + cant + " de reservas.";
+				}
+
+				String sql2 = String.format("SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA, SUM(COSTO_CALCULADO) INGRESO_TOTAL " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) " + 
+						"ORDER BY INGRESO_TOTAL desc",USUARIO, oferta );
+
+				PreparedStatement prepStmt2 = conn.prepareStatement(sql2);
+				ResultSet rs2 = prepStmt2.executeQuery();
+				if(rs2.next()) {
+					String sem = rs2.getString("SEMANA");
+					String cant = rs2.getString("INGRESO_TOTAL");
+					m2 = "La semana con más ingresos fue " + sem + "con " + cant ;
+				}
+
+				String sql3 = String.format("SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA, COUNT(to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW'))) AS CANT_RESERVAS " + 
+						"FROM %1$s.RESERVAS " + 
+						"WHERE TIPO_OFERTA = '%2$s' " + 
+						"GROUP BY to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) " + 
+						"ORDER BY CANT_RESERVAS asc",USUARIO, oferta );
+
+				PreparedStatement prepStmt3 = conn.prepareStatement(sql3);
+				ResultSet rs3 = prepStmt3.executeQuery();
+				if(rs3.next()) {
+					String sem = rs3.getString("SEMANA");
+					String cant = rs3.getString("CANT_RESERVAS");
+					m3 = "La semana con menor demanda fue " + sem + "con " + cant + " de reservas.";
+				}
+				mensaje = m1 + "\n" + m2 + "\n" + m3;
+			}
+			else {
+				mensaje = "La unidad de tiempo es invalida";
+			}
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return mensaje;
 	}
 
 }
