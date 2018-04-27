@@ -416,7 +416,6 @@ public class AlohAndesTransactionManager {
 		for(int i = 0; i<ofertasQueSonDeHotel.size(); i++) {
 			if(daoOfertaHotel.findOfertaHotelById(ofertasQueSonDeHotel.get(i)).getTipoHabitacion().trim().equals(reservaColectiva.getTipoHabitacion().trim())){ //filtrar por tipo de habitacion
 				ofertasPotenciales.add(ofertasQueSonDeHotel.get(i));
-				System.out.println("OFERTA ENCONTRADA: " + ofertasQueSonDeHotel.get(i));
 			}
 		}
 		
@@ -432,8 +431,10 @@ public class AlohAndesTransactionManager {
 			for(int i = 0; i<ofertasPotenciales.size(); i++) {
 				if(daoReserva.consultarDisponibilidad("hotel", ofertasPotenciales.get(i), reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin())) {
 					ofertas.add(ofertasPotenciales.get(i));
+					System.out.println("se encontro disponible");
 				}
 			}
+			System.out.println("NUMERO DE OFERTAS ENCONTRADAS: " + ofertas.size());
 			if(ofertas.size() < reservaColectiva.getCantidad()) {
 				throw new Exception("No hay suficientes habitaciones disponibles con las especificaciones solicitadas");
 			}

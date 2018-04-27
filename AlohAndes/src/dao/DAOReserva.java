@@ -5,6 +5,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -153,7 +154,7 @@ public class DAOReserva {
 	public boolean consultarDisponibilidad(String tipoOferta, Long idOferta, Date fechaInicio, Date fechaFin) throws SQLException, Exception {
 		boolean disponible = true;
 		ArrayList<Reserva> reservasPotenciales = new ArrayList<Reserva>();
-		String sql = String.format("SELECT * FROM %1$s.Reservas WHERE TIPO_OFERTA = '%2$s' AND ID_OFERTA = %3$d AND ESTADO = 'ACTIVA'", USUARIO, tipoOferta, idOferta);
+		String sql = String.format("SELECT * FROM %1$s.Reservas WHERE TIPO_OFERTA = '%2$s' AND ID_OFERTA = %3$d AND ESTADO = 'activa'", USUARIO, tipoOferta, idOferta);
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
 		ResultSet rs = prepStmt.executeQuery();
@@ -163,11 +164,12 @@ public class DAOReserva {
 		}
 		for(int i = 0; i<reservasPotenciales.size() && disponible; i++) {
 			Reserva actual = reservasPotenciales.get(i);
-			if(actual.getFechaInicio().compareTo(fechaInicio)*fechaInicio.compareTo(actual.getFechaFin()) > 0){
-				disponible = false;
-			}
-			else if(actual.getFechaInicio().before(fechaFin)){
-				disponible = false;
+			LocalDate fI = fechaInicio.toLocalDate();
+			LocalDate fF = fechaFin.toLocalDate();
+			LocalDate actualFechaInicio = actual.getFechaInicio().toLocalDate();
+			LocalDate actualFechaFin = actual.getFechaFin().toLocalDate();
+			if ((fI.isAfter(actualFechaInicio) && fI.isBefore(actualFechaFin)) || (fF.isBefore(actualFechaFin) && fF.isAfter(actualFechaInicio)) || actualFechaInicio.equals(fI) || actualFechaFin.equals(fF)){
+				disponible= false;
 			}
 		}
 		return disponible;
@@ -187,7 +189,8 @@ public class DAOReserva {
 		ArrayList<Reserva> reservas = getReservas();
 		for(int i = 0; i<reservas.size(); i++) {
 			Reserva actual = reservas.get(i);
-			if(actual.getPersona() == persona && actual.getFechaInicio().equals(fechaInicio) && actual.getFechaFin().equals(fechaFin)) {
+			if(actual.getPersona().equals(persona) && actual.getFechaInicio().toLocalDate().compareTo(fechaInicio.toLocalDate()) == 0 && actual.getFechaFin().toLocalDate().compareTo(fechaFin.toLocalDate()) == 0) {
+				System.out.println("Se encontro reserva a borrar");
 				deleteReserva(actual);
 			}
 		}
