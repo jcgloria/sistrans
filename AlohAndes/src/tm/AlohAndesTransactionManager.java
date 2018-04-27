@@ -18,6 +18,7 @@ import dao.DAOOfertaHotel;
 import dao.DAOPersona;
 import dao.DAOReserva;
 import dao.DAOServicio;
+import vos.OfertaHotel;
 import vos.Persona;
 import vos.Reserva;
 import vos.ReservaColectiva;
@@ -181,6 +182,45 @@ public class AlohAndesTransactionManager {
 			}
 		}
 		return persona;
+	}
+	
+	public OfertaHotel getOfertaHotelById(Long id) throws Exception {
+		DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel();
+		OfertaHotel oferta = null;
+		try 
+		{
+			this.conn = darConexion();
+			daoOfertaHotel.setConn(conn);
+			oferta = daoOfertaHotel.findOfertaHotelById(id);
+			if(oferta == null)
+			{
+				throw new Exception("La persona con el id = " + id + " no se encuentra persistido en la base de datos.");				
+			}
+		} 
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoOfertaHotel.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return oferta;
 	}
 
 	public void addPersona(Persona persona) throws Exception 
@@ -366,15 +406,14 @@ public class AlohAndesTransactionManager {
 		for(int i = 0; i<ofertasConServicios.size(); i++) {
 			if(ofertasConServicios.get(i).getTipoOferta().equals("hotel")) { //filtrar por las que son de hotel
 				ofertasQueSonDeHotel.add(ofertasConServicios.get(i).getIdOferta());
-				System.out.println("RESERVA CON HOTEL: " + ofertasConServicios.get(i).getIdOferta());
 			}
 		}
 
 		ArrayList<Long> ofertasPotenciales = new ArrayList<Long>(); 
 		DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel();
-		System.out.println("Reserva colectiva tipo de habitacion: " + reservaColectiva.getTipoHabitacion());
+		this.conn = darConexion();
+		daoOfertaHotel.setConn(conn);
 		for(int i = 0; i<ofertasQueSonDeHotel.size(); i++) {
-			System.out.println("TIPO HABITACION OFERTA ACTUAL: " + daoOfertaHotel.findOfertaHotelById(ofertasQueSonDeHotel.get(i)).getTipoHabitacion());
 			if(daoOfertaHotel.findOfertaHotelById(ofertasQueSonDeHotel.get(i)).getTipoHabitacion().trim().equals(reservaColectiva.getTipoHabitacion().trim())){ //filtrar por tipo de habitacion
 				ofertasPotenciales.add(ofertasQueSonDeHotel.get(i));
 				System.out.println("OFERTA ENCONTRADA: " + ofertasQueSonDeHotel.get(i));
@@ -383,6 +422,8 @@ public class AlohAndesTransactionManager {
 		
 
 		DAOReserva daoReserva = new DAOReserva();
+		this.conn = darConexion();
+		daoReserva.setConn(conn);
 		try
 		{	
 			ArrayList<Long> ofertas = new ArrayList<Long>();
@@ -400,8 +441,9 @@ public class AlohAndesTransactionManager {
 				System.out.println("Si hay reservas suficientes, reservando...");
 				int contador = 0;
 				while(contador < reservaColectiva.getCantidad()) {
-					daoReserva.agregarReserva(reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin(), "hotel", ofertas.get(contador), reservaColectiva.getPersona());
+					daoReserva.agregarReserva(reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin(), "hotel", ofertas.get(contador), reservaColectiva.getPersona());				
 					contador++;
+					System.out.println("Se agrego reserva. Total: " + contador);
 				}
 				System.out.println("Reserva colectiva exitosa");
 			}

@@ -36,9 +36,7 @@ public class DAOOfertaHotel {
 
 	public OfertaHotel findOfertaHotelById(Long id) throws SQLException, Exception {
 		OfertaHotel ofertaHotel = null;
-
 		String sql = String.format("SELECT * FROM %1$s.OFERTAS_HOTEL WHERE ID = %2$d", USUARIO, id);
-
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
 		ResultSet rs = prepStmt.executeQuery();
@@ -46,7 +44,7 @@ public class DAOOfertaHotel {
 		if (rs.next()) {
 			ofertaHotel = convertResultSetToOfertaHotel(rs);
 		}
-
+		
 		return ofertaHotel;
 	}
 

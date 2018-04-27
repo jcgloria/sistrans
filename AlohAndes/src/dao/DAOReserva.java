@@ -56,8 +56,8 @@ public class DAOReserva {
 
 	public void addReserva(Reserva reserva) throws SQLException, Exception {
 		String sql = String.format(
-				"INSERT INTO %1$s.Reservas (ID, TIPO_OFERTA, ID_OFERTA, FECHA_RESERVA, FECHA_INICIO, FECHA_FIN, FECHA_OPORTUNA, COSTO CALCULADO, ESTADO, PERSONA) VALUES (%2$s, '%3$s', '%4$s', '%5$s','%6$s', '%7$s', '%8$s', '%9$s', '%10$s', '%11$s')",
-				USUARIO, reserva.getId(), reserva.getTipoOferta(), reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), calcularCosto(reserva), "activo", reserva.getPersona());
+				"INSERT INTO %1$s.Reservas (ID, TIPO_OFERTA, ID_OFERTA, FECHA_RESERVA, FECHA_INICIO, FECHA_FIN, FECHA_OPORTUNA, COSTO_CALCULADO, ESTADO, PERSONA) VALUES (%2$s, '%3$s', '%4$s', TO_DATE('%5$s', 'YYYY-MM-DD'), TO_DATE('%6$s', 'YYYY-MM-DD'), TO_DATE('%7$s', 'YYYY-MM-DD'), TO_DATE('%8$s', 'YYYY-MM-DD'), '%9$s', '%10$s', '%11$s')",
+				USUARIO, reserva.getId(), reserva.getTipoOferta(), reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), calcularCosto(reserva), reserva.getEstado(), reserva.getPersona());
 		System.out.println(sql);
 
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
@@ -105,23 +105,10 @@ public class DAOReserva {
 	}
 
 	public Long calcularCosto(Reserva reserva) throws SQLException, Exception {
-		System.out.println("Empezando calculo de costo...");
 		double precio = 0;
-		if(reserva.getEstado().equals( "activo")) {
-			System.out.println("La reserva esta activa");
+		if(reserva.getEstado().equalsIgnoreCase( "activa")) {
 			switch(reserva.getTipoOferta()) {
-			case "hotel": DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel();
-			precio = daoOfertaHotel.findOfertaHotelById(reserva.getIdOferta()).getPrecio();
-			case "hostal" : DAOOfertaHostal daoOfertaHostal = new DAOOfertaHostal();
-			precio = daoOfertaHostal.findOfertaHostalById(reserva.getIdOferta()).getPrecio();
-			case "vivienda" : DAOOfertaVivienda daoOfertaVivienda = new DAOOfertaVivienda();
-			precio = daoOfertaVivienda.findOfertaViviendaById(reserva.getIdOferta()).getCostoNoche();
-			case "apartamento" : DAOOfertaApartamento daoOfertaApartamento = new DAOOfertaApartamento();
-			precio = daoOfertaApartamento.findOfertaApartamentoById(reserva.getId()).getCosto();
-			case "evento" : DAOOfertaEvento daoOfertaEvento = new DAOOfertaEvento();
-			precio = daoOfertaEvento.findOfertaEventoById(reserva.getId()).getPrecio();
-			case "persona natural": DAOOfertaPersonaNatural daoOfertaPN = new DAOOfertaPersonaNatural();
-			precio = daoOfertaPN.findOfertaPersonaNaturalById(reserva.getId()).getPrecioMensual();
+			case "hotel": DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel(); daoOfertaHotel.setConn(conn);
 			return (long) (precio*((calcularDiasEntreDates(reserva.getFechaInicio(), reserva.getFechaFin()))/30));
 			}	
 
@@ -166,8 +153,7 @@ public class DAOReserva {
 	public boolean consultarDisponibilidad(String tipoOferta, Long idOferta, Date fechaInicio, Date fechaFin) throws SQLException, Exception {
 		boolean disponible = true;
 		ArrayList<Reserva> reservasPotenciales = new ArrayList<Reserva>();
-		String sql = String.format("SELECT * FROM %1$s.Reservas WHERE TIPO_OFERTA = %2$s AND ID_OFERTA = %3$d AND ESTADO = ACTIVA", USUARIO, tipoOferta, idOferta);
-
+		String sql = String.format("SELECT * FROM %1$s.Reservas WHERE TIPO_OFERTA = '%2$s' AND ID_OFERTA = %3$d AND ESTADO = 'ACTIVA'", USUARIO, tipoOferta, idOferta);
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
 		ResultSet rs = prepStmt.executeQuery();
@@ -197,6 +183,7 @@ public class DAOReserva {
 	 * @throws SQLException 
 	 */
 	public void cancelarReservaPersonaYFechas(Long persona, Date fechaInicio, Date fechaFin) throws SQLException, Exception {
+		System.out.println("Empezando cancelacion de reserva...");
 		ArrayList<Reserva> reservas = getReservas();
 		for(int i = 0; i<reservas.size(); i++) {
 			Reserva actual = reservas.get(i);
