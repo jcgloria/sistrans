@@ -26,6 +26,7 @@ import vos.Persona;
 import vos.Reserva;
 import vos.ReservaColectiva;
 import vos.Servicio;
+import vos.VORFC13;
 
 public class AlohAndesTransactionManager {
 
@@ -869,6 +870,46 @@ public class AlohAndesTransactionManager {
 		}
 		return personas;
 	}	
+	
+	/**
+	 * RFC13
+	 * @return
+	 */
+	public ArrayList<VORFC13> buenosClientes()throws SQLException{
+		ArrayList<VORFC13> personas;
+		DAOPersona daoPersona = new DAOPersona();
+		try 
+		{
+			this.conn = darConexion();
+			daoPersona.setConn(conn);
+			personas = daoPersona.consultarBuenosClientes();
+			
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoPersona.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return personas;
+	}
 	
 	
 	public static String darTipoOferta(Long id) {

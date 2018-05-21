@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import vos.Persona;
 import vos.Reserva;
+import vos.VORFC13;
 
 public class DAOPersona {
 
@@ -19,16 +20,16 @@ public class DAOPersona {
 	public DAOPersona() {
 		recursos = new ArrayList<Object>();
 	}
-	
+
 	public ArrayList<Persona> rfc8(String oferta) throws SQLException, Exception{
 		ArrayList<Persona> personas = new ArrayList<Persona>();
 
 		String sql = String.format("SELECT PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION "
-				                 + "FROM (%1$s.RESERVAS INNER JOIN %2$s.PERSONAS ON RESERVAS.PERSONA = PERSONAS.ID) "
-				                 + "WHERE RESERVAS.TIPO_OFERTA = '%3$s' "  
-				                 + "AND RESERVAS.FECHA_FIN - RESERVAS.FECHA_INICIO >=15 "  
-				                 + "GROUP BY PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION " 
-				                 + "ORDER BY PERSONAS.ID" , USUARIO, USUARIO, oferta);
+				+ "FROM (%1$s.RESERVAS INNER JOIN %2$s.PERSONAS ON RESERVAS.PERSONA = PERSONAS.ID) "
+				+ "WHERE RESERVAS.TIPO_OFERTA = '%3$s' "  
+				+ "AND RESERVAS.FECHA_FIN - RESERVAS.FECHA_INICIO >=15 "  
+				+ "GROUP BY PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION " 
+				+ "ORDER BY PERSONAS.ID" , USUARIO, USUARIO, oferta);
 
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
@@ -65,7 +66,7 @@ public class DAOPersona {
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
 		ResultSet rs = prepStmt.executeQuery();
-		
+
 		if (rs.next()) {
 			persona = convertResultSetToPersona(rs);
 		}
@@ -121,7 +122,7 @@ public class DAOPersona {
 
 		return per;
 	}
-	
+
 	/**
 	 * Para rfc10
 	 * @param resultSet
@@ -138,7 +139,7 @@ public class DAOPersona {
 
 		return per;
 	}
-	
+
 	/**
 	 * RFC10 consultar consumo de personas
 	 * @param inicio
@@ -160,7 +161,7 @@ public class DAOPersona {
 		}
 		return personas;
 	}
-	
+
 	public ArrayList<Persona> consultarConsumoSQLNegado(String inicio, String fin, Long idOferta) throws SQLException{
 		ArrayList<Persona> personas = new ArrayList<Persona>();
 		String sql = String.format("SELECT * FROM PERSONAS WHERE ID NOT IN"
@@ -169,7 +170,7 @@ public class DAOPersona {
 				+ "WHERE ID_OFERTA = 235090 "
 				+ "AND (FECHA_INICIO BETWEEN TO_DATE('01/01/19', 'DD/MM/YY') "
 				+ "AND TO_DATE('01/01/20', 'DD/MM/YY')))", USUARIO, idOferta, inicio, fin);
-			//	+ "AND ROWNUM <=300";  //limite para que termine el query
+		//	+ "AND ROWNUM <=300";  //limite para que termine el query
 		System.out.println(sql);
 		PreparedStatement prepStmt = conn.prepareStatement(sql);
 		recursos.add(prepStmt);
@@ -179,6 +180,37 @@ public class DAOPersona {
 			personas.add(convertResultSetToPersona(rs));
 		}
 		return personas;
+	}
+	public ArrayList<VORFC13> consultarBuenosClientes()throws SQLException{
+		ArrayList<VORFC13> personas = new ArrayList<>();
+		String sql = String.format("SELECT PERSONAS.ID, PERSONAS.NOMBRE, PERSONAS.CORREO, PERSONAS.AFILIACION, RESERVAS.COSTO_CALCULADO "
+				+"FROM (PERSONAS INNER JOIN RESERVAS "
+						+"ON PERSONAS.ID = RESERVAS.PERSONA) "
+						+"WHERE PERSONAS.ID NOT IN(SELECT PERSONA "
+						+"FROM RESERVAS "
+						+"WHERE COSTO_CALCULADO < 500000 "
+						+"GROUP BY PERSONA) "
+						+"ORDER BY PERSONAS.ID", USUARIO);
+		PreparedStatement prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		ResultSet rs = prepStmt.executeQuery();
+
+		while (rs.next()) {
+			personas.add(convertResultSetToVORFC13(rs));
+		}
+		return personas;
+	}
+
+	public VORFC13 convertResultSetToVORFC13(ResultSet resultSet) throws SQLException {
+		Long id = resultSet.getLong("ID");
+		String nombre = resultSet.getString("NOMBRE");
+		String correo = resultSet.getString("CORREO");
+		String afiliacion = resultSet.getString("AFILIACION");
+		Long costo_calculado = resultSet.getLong("COSTO_CALCULADO");
+
+		VORFC13 per = new VORFC13(id, nombre, correo, afiliacion,costo_calculado);
+
+		return per;
 	}
 
 	public void setConn(Connection connection) {
