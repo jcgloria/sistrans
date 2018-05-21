@@ -9,9 +9,6 @@ public class Reserva {
 	@JsonProperty(value="id")
 	private Long id;
 	
-	@JsonProperty(value="tipo_oferta")
-	private String tipoOferta;
-	
 	@JsonProperty(value="id_oferta")
 	private Long idOferta;
 	
@@ -36,10 +33,9 @@ public class Reserva {
 	@JsonProperty(value="persona")
 	private Long persona;
 
-	public Reserva(@JsonProperty(value="id") Long id,@JsonProperty(value="tipo_oferta") String tipoOferta, @JsonProperty(value="id_oferta") Long idOferta, @JsonProperty(value="fecha_reserva") Date fechaReserva, @JsonProperty(value="fecha_inicio") Date fechaInicio, @JsonProperty(value="fecha_fin") Date fechaFin,
+	public Reserva(@JsonProperty(value="id") Long id, @JsonProperty(value="id_oferta") Long idOferta, @JsonProperty(value="fecha_reserva") Date fechaReserva, @JsonProperty(value="fecha_inicio") Date fechaInicio, @JsonProperty(value="fecha_fin") Date fechaFin,
 			@JsonProperty(value="fecha_cancelacion") Date fechaOportuna, @JsonProperty(value="costo_calculado") Long costoCalculado, @JsonProperty(value="estado") String estado, @JsonProperty(value="persona") Long persona) {
 		this.id = id;
-		this.tipoOferta = tipoOferta;
 		this.idOferta = idOferta;
 		this.fechaReserva = fechaReserva;
 		this.fechaInicio = fechaInicio;
@@ -56,14 +52,6 @@ public class Reserva {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	public String getTipoOferta() {
-		return tipoOferta;
-	}
-
-	public void setTipoOferta(String tipoOferta) {
-		this.tipoOferta = tipoOferta;
 	}
 
 	public Long getIdOferta() {

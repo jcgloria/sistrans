@@ -55,44 +55,44 @@ public class DAOReserva {
 	}
 
 
-	public void addReserva(Reserva reserva) throws SQLException, Exception {
-		String sql = String.format(
-				"INSERT INTO %1$s.Reservas (ID, TIPO_OFERTA, ID_OFERTA, FECHA_RESERVA, FECHA_INICIO, FECHA_FIN, FECHA_OPORTUNA, COSTO_CALCULADO, ESTADO, PERSONA) VALUES (%2$s, '%3$s', '%4$s', TO_DATE('%5$s', 'YYYY-MM-DD'), TO_DATE('%6$s', 'YYYY-MM-DD'), TO_DATE('%7$s', 'YYYY-MM-DD'), TO_DATE('%8$s', 'YYYY-MM-DD'), '%9$s', '%10$s', '%11$s')",
-				USUARIO, reserva.getId(), reserva.getTipoOferta(), reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), calcularCosto(reserva), reserva.getEstado(), reserva.getPersona());
-		System.out.println(sql);
-
-		PreparedStatement prepStmt = conn.prepareStatement(sql);
-		recursos.add(prepStmt);
-		prepStmt.executeQuery();
-
-	}
+//	public void addReserva(Reserva reserva) throws SQLException, Exception {
+//		String sql = String.format(
+//				"INSERT INTO %1$s.Reservas (ID, TIPO_OFERTA, ID_OFERTA, FECHA_RESERVA, FECHA_INICIO, FECHA_FIN, FECHA_OPORTUNA, COSTO_CALCULADO, ESTADO, PERSONA) VALUES (%2$s, '%3$s', '%4$s', TO_DATE('%5$s', 'YYYY-MM-DD'), TO_DATE('%6$s', 'YYYY-MM-DD'), TO_DATE('%7$s', 'YYYY-MM-DD'), TO_DATE('%8$s', 'YYYY-MM-DD'), '%9$s', '%10$s', '%11$s')",
+//				USUARIO, reserva.getId(), reserva.getTipoOferta(), reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), calcularCosto(reserva), reserva.getEstado(), reserva.getPersona());
+//		System.out.println(sql);
+//
+//		PreparedStatement prepStmt = conn.prepareStatement(sql);
+//		recursos.add(prepStmt);
+//		prepStmt.executeQuery();
+//
+//	}
 	/**
 	 * RF4 - Registrar una reserva. Se usa el metodo de calcular el costo a partir de las fechas que se seleccionaron.
 	 * @param reserva
 	 * @throws SQLException
 	 * @throws Exception
 	 */
-	public void agregarReserva(Date fechaInicio, Date fechaFin, String tipoOferta, Long idOferta, Long persona) throws SQLException, Exception {
-		Long randomNum = (long) ThreadLocalRandom.current().nextInt(2000, 999999999);
-		Reserva res = new Reserva(randomNum, tipoOferta, idOferta, new Date(System.currentTimeMillis()), fechaInicio, fechaFin, new Date(fechaInicio.getTime()+8*24*60*60*1000), (long) 0, "activa", persona);
-		res.setCostoCalculado(calcularCosto(res));
-		addReserva(res);
-	}
+//	public void agregarReserva(Date fechaInicio, Date fechaFin, String tipoOferta, Long idOferta, Long persona) throws SQLException, Exception {
+//		Long randomNum = (long) ThreadLocalRandom.current().nextInt(2000, 999999999);
+//		Reserva res = new Reserva(randomNum, tipoOferta, idOferta, new Date(System.currentTimeMillis()), fechaInicio, fechaFin, new Date(fechaInicio.getTime()+8*24*60*60*1000), (long) 0, "activa", persona);
+//		res.setCostoCalculado(calcularCosto(res));
+//		addReserva(res);
+//	}
 
-	public void updateReserva(Reserva reserva) throws SQLException, Exception {
-
-		StringBuilder sql = new StringBuilder();
-		sql.append(String.format("UPDATE %s.Reservas ", USUARIO));
-		sql.append(String.format("SET TIPO_OFERTA = '%1$s', ID_OFERTA = '%2$s', FECHA_RESERVA = '%3$s', FECHA_INICIO = '%4$s', "
-				+ "FECHA_FIN = '%5$s', FECHA_OPORTUNA = '%6$s', COSTO_CALCULADO = '%7$s', ESTADO = '%8$s', PERSONA = '%9$s'  ", reserva.getTipoOferta(),
-				reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), reserva.getCostoCalculado(), "activo", reserva.getPersona()));
-		sql.append("WHERE ID = " + reserva.getId());
-		System.out.println(sql);
-
-		PreparedStatement prepStmt = conn.prepareStatement(sql.toString());
-		recursos.add(prepStmt);
-		prepStmt.executeQuery();
-	}
+//	public void updateReserva(Reserva reserva) throws SQLException, Exception {
+//
+//		StringBuilder sql = new StringBuilder();
+//		sql.append(String.format("UPDATE %s.Reservas ", USUARIO));
+//		sql.append(String.format("SET TIPO_OFERTA = '%1$s', ID_OFERTA = '%2$s', FECHA_RESERVA = '%3$s', FECHA_INICIO = '%4$s', "
+//				+ "FECHA_FIN = '%5$s', FECHA_OPORTUNA = '%6$s', COSTO_CALCULADO = '%7$s', ESTADO = '%8$s', PERSONA = '%9$s'  ", reserva.getTipoOferta(),
+//				reserva.getIdOferta(), reserva.getFechaReserva(), reserva.getFechaInicio(), reserva.getFechaFin(), reserva.getFechaOportuna(), reserva.getCostoCalculado(), "activo", reserva.getPersona()));
+//		sql.append("WHERE ID = " + reserva.getId());
+//		System.out.println(sql);
+//
+//		PreparedStatement prepStmt = conn.prepareStatement(sql.toString());
+//		recursos.add(prepStmt);
+//		prepStmt.executeQuery();
+//	}
 
 	public void deleteReserva(Reserva Reserva) throws SQLException, Exception {
 
@@ -105,28 +105,28 @@ public class DAOReserva {
 		prepStmt.executeQuery();
 	}
 
-	public Long calcularCosto(Reserva reserva) throws SQLException, Exception {
-		double precio = 0;
-		if(reserva.getEstado().equalsIgnoreCase( "activa")) {
-			switch(reserva.getTipoOferta()) {
-			case "hotel": DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel(); daoOfertaHotel.setConn(conn);
-			return (long) (precio*((calcularDiasEntreDates(reserva.getFechaInicio(), reserva.getFechaFin()))/30));
-			}	
-
-			precio = (Double) precio*(calcularDiasEntreDates(reserva.getFechaInicio(), reserva.getFechaFin()));
-		}
-		else {
-			System.out.println("La reserva se cancelo");
-			Date today = new Date(System.currentTimeMillis());
-			if(today.before(reserva.getFechaInicio())) { //si se cancela antes de la fecha de inicio
-				precio = precio*0.3;
-			}
-			else { //si se cancela despues de la fecha de inicio
-				precio = precio*0.5;
-			}
-		}
-		return (long) precio;
-	}
+//	public Long calcularCosto(Reserva reserva) throws SQLException, Exception {
+//		double precio = 0;
+//		if(reserva.getEstado().equalsIgnoreCase( "activa")) {
+//			switch(reserva.getTipoOferta()) {
+//			case "hotel": DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel(); daoOfertaHotel.setConn(conn);
+//			return (long) (precio*((calcularDiasEntreDates(reserva.getFechaInicio(), reserva.getFechaFin()))/30));
+//			}	
+//
+//			precio = (Double) precio*(calcularDiasEntreDates(reserva.getFechaInicio(), reserva.getFechaFin()));
+//		}
+//		else {
+//			System.out.println("La reserva se cancelo");
+//			Date today = new Date(System.currentTimeMillis());
+//			if(today.before(reserva.getFechaInicio())) { //si se cancela antes de la fecha de inicio
+//				precio = precio*0.3;
+//			}
+//			else { //si se cancela despues de la fecha de inicio
+//				precio = precio*0.5;
+//			}
+//		}
+//		return (long) precio;
+//	}
 
 	/**
 	 * RF5 - Cancelar Reserva. Se cambia el estado de la reserva a cancelado y se actualiza.
@@ -134,12 +134,12 @@ public class DAOReserva {
 	 * @throws SQLException
 	 * @throws Exception
 	 */
-	public void cancelarReserva(Reserva reserva) throws SQLException, Exception {
-		System.out.println("Cancelando reserva con id: " + reserva.getId() + "...");
-		reserva.setEstado("cancelado");
-		updateReserva(reserva);
-		System.out.println("Reserva actualizada exitosamente");
-	}
+//	public void cancelarReserva(Reserva reserva) throws SQLException, Exception {
+//		System.out.println("Cancelando reserva con id: " + reserva.getId() + "...");
+//		reserva.setEstado("cancelado");
+//		updateReserva(reserva);
+//		System.out.println("Reserva actualizada exitosamente");
+//	}
 
 	/**
 	 * Consulta la disponibilidad de una oferta de AlohAndes.
@@ -195,11 +195,12 @@ public class DAOReserva {
 			}
 		}
 	}
+	
+	
 
 
 	public Reserva convertResultSetToReserva(ResultSet resultSet) throws SQLException {
 		Long id = resultSet.getLong("ID");
-		String tipoOferta = resultSet.getString("TIPO_OFERTA");
 		Long idOferta = resultSet.getLong("ID_OFERTA");
 		Date afiliacion = resultSet.getDate("FECHA_RESERVA");
 		Date fechaInicio = resultSet.getDate("FECHA_INICIO");
@@ -209,7 +210,7 @@ public class DAOReserva {
 		String estado = resultSet.getString("ESTADO");
 		Long persona = resultSet.getLong("PERSONA");
 
-		Reserva res = new Reserva(id, tipoOferta, idOferta, afiliacion, fechaInicio, fechaFin, fechaOportuna, costoCalculado, estado, persona);
+		Reserva res = new Reserva(id, idOferta, afiliacion, fechaInicio, fechaFin, fechaOportuna, costoCalculado, estado, persona);
 
 		return res;
 	}

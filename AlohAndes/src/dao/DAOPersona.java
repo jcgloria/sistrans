@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import vos.Persona;
+import vos.Reserva;
 
 public class DAOPersona {
 
@@ -119,6 +120,65 @@ public class DAOPersona {
 		Persona per = new Persona(id, nombre, correo, afiliacion);
 
 		return per;
+	}
+	
+	/**
+	 * Para rfc10
+	 * @param resultSet
+	 * @return
+	 * @throws SQLException
+	 */
+	public Persona convertResultSetToPersona2(ResultSet resultSet) throws SQLException {
+		Long id = resultSet.getLong("PERSONA");
+		String nombre = resultSet.getString("NOMBRE");
+		String correo = resultSet.getString("CORREO");
+		String afiliacion = resultSet.getString("AFILIACION");
+
+		Persona per = new Persona(id, nombre, correo, afiliacion);
+
+		return per;
+	}
+	
+	/**
+	 * RFC10 consultar consumo de personas
+	 * @param inicio
+	 * @param fin
+	 * @param idOferta
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<Persona> consultarConsumoSQL(String inicio, String fin, Long idOferta) throws SQLException{
+		ArrayList<Persona> personas = new ArrayList<Persona>();
+		String sql = String.format("SELECT PERSONA,NOMBRE,CORREO, AFILIACION FROM %1$s.RESERVAS INNER JOIN PERSONAS ON RESERVAS.PERSONA = PERSONAS.ID WHERE ID_OFERTA = %2$s AND (FECHA_INICIO BETWEEN TO_DATE('%3$s', 'DD/MM/YY') AND TO_DATE('%4$s', 'DD/MM/YY'))", USUARIO, idOferta, inicio, fin);
+		System.out.println(sql);
+		PreparedStatement prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		ResultSet rs = prepStmt.executeQuery();
+
+		while (rs.next()) {
+			personas.add(convertResultSetToPersona2(rs));
+		}
+		return personas;
+	}
+	
+	public ArrayList<Persona> consultarConsumoSQLNegado(String inicio, String fin, Long idOferta) throws SQLException{
+		ArrayList<Persona> personas = new ArrayList<Persona>();
+		String sql = String.format("SELECT * FROM PERSONAS WHERE ID NOT IN"
+				+ "(SELECT PERSONA FROM RESERVAS INNER JOIN PERSONAS ON "
+				+ "RESERVAS.PERSONA = PERSONAS.ID "
+				+ "WHERE ID_OFERTA = 235090 "
+				+ "AND (FECHA_INICIO BETWEEN TO_DATE('01/01/19', 'DD/MM/YY') "
+				+ "AND TO_DATE('01/01/20', 'DD/MM/YY')))", USUARIO, idOferta, inicio, fin);
+			//	+ "AND ROWNUM <=300";  //limite para que termine el query
+		System.out.println(sql);
+		PreparedStatement prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		ResultSet rs = prepStmt.executeQuery();
+
+		while (rs.next()) {
+			personas.add(convertResultSetToPersona(rs));
+		}
+		return personas;
 	}
 
 	public void setConn(Connection connection) {

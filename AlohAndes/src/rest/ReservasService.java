@@ -37,22 +37,22 @@ public class ReservasService {
 		return "{ \"ERROR\": \""+ e.getMessage() + "\"}" ;
 	}
 	
-	@POST
-	@Path("/masiva")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response addReservaColectiva(ReservaColectiva reservaColectiva) {
-
-		try {
-			AlohAndesTransactionManager tm = new AlohAndesTransactionManager(getPath());
-			tm.solicitarReservaColectiva(reservaColectiva);
-			return Response.status( 200 ).entity( reservaColectiva ).build( );
-		}
-		catch( Exception e )
-		{
-			return Response.status( 500 ).entity( doErrorMessage( e ) ).build( );
-		}
-	}
+//	@POST
+//	@Path("/masiva")
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	@Produces(MediaType.APPLICATION_JSON)
+//	public Response addReservaColectiva(ReservaColectiva reservaColectiva) {
+//
+//		try {
+//			AlohAndesTransactionManager tm = new AlohAndesTransactionManager(getPath());
+//			tm.solicitarReservaColectiva(reservaColectiva);
+//			return Response.status( 200 ).entity( reservaColectiva ).build( );
+//		}
+//		catch( Exception e )
+//		{
+//			return Response.status( 500 ).entity( doErrorMessage( e ) ).build( );
+//		}
+//	}
 	
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })

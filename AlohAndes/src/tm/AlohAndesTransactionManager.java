@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -403,82 +404,82 @@ public class AlohAndesTransactionManager {
 	 * @param reservaColectiva
 	 * @throws Exception si no hay suficientes reservas con las especificaciones solicitadas
 	 */
-	public void solicitarReservaColectiva(ReservaColectiva reservaColectiva) throws Exception {
-		System.out.println("RESERVA COLECTIVA EMPEZADA");
-		ArrayList<Servicio> ofertasConServicios = buscarOfertasParaPersona(getPersonaById(reservaColectiva.getPersona()));
-		ArrayList<Long> ofertasQueSonDeHotel = new ArrayList<Long>();
-		for(int i = 0; i<ofertasConServicios.size(); i++) {
-			if(ofertasConServicios.get(i).getTipoOferta().equals("hotel")) { //filtrar por las que son de hotel
-				ofertasQueSonDeHotel.add(ofertasConServicios.get(i).getIdOferta());
-			}
-		}
-
-		ArrayList<Long> ofertasPotenciales = new ArrayList<Long>(); 
-		DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel();
-		this.conn = darConexion();
-		daoOfertaHotel.setConn(conn);
-		for(int i = 0; i<ofertasQueSonDeHotel.size(); i++) {
-			if(daoOfertaHotel.findOfertaHotelById(ofertasQueSonDeHotel.get(i)).getTipoHabitacion().trim().equals(reservaColectiva.getTipoHabitacion().trim())){ //filtrar por tipo de habitacion
-				ofertasPotenciales.add(ofertasQueSonDeHotel.get(i));
-			}
-		}
-		
-
-		DAOReserva daoReserva = new DAOReserva();
-		this.conn = darConexion();
-		daoReserva.setConn(conn);
-		try
-		{	
-			ArrayList<Long> ofertas = new ArrayList<Long>();
-			this.conn = darConexion();
-			daoReserva.setConn( conn );
-			for(int i = 0; i<ofertasPotenciales.size(); i++) {
-				if(daoReserva.consultarDisponibilidad("hotel", ofertasPotenciales.get(i), reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin())) {
-					ofertas.add(ofertasPotenciales.get(i));
-					System.out.println("se encontro disponible");
-				}
-			}
-			System.out.println("NUMERO DE OFERTAS ENCONTRADAS: " + ofertas.size());
-			if(ofertas.size() < reservaColectiva.getCantidad()) {
-				throw new Exception("No hay suficientes habitaciones disponibles con las especificaciones solicitadas");
-			}
-			else {
-				System.out.println("Si hay reservas suficientes, reservando...");
-				int contador = 0;
-				while(contador < reservaColectiva.getCantidad()) {
-					daoReserva.agregarReserva(reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin(), "hotel", ofertas.get(contador), reservaColectiva.getPersona());				
-					contador++;
-					System.out.println("Se agrego reserva. Total: " + contador);
-				}
-				System.out.println("Reserva colectiva exitosa");
-			}
-
-		}
-		catch (SQLException sqlException) {
-			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
-			sqlException.printStackTrace();
-			throw sqlException;
-		} 
-		catch (Exception exception) {
-			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
-			exception.printStackTrace();
-			throw exception;
-		} 
-		finally {
-			try {
-				daoOfertaHotel.cerrarRecursos();
-				daoReserva.cerrarRecursos();
-				if(this.conn!=null){
-					this.conn.close();					
-				}
-			}
-			catch (SQLException exception) {
-				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
-				exception.printStackTrace();
-				throw exception;
-			}
-		}	
-	}
+//	public void solicitarReservaColectiva(ReservaColectiva reservaColectiva) throws Exception {
+//		System.out.println("RESERVA COLECTIVA EMPEZADA");
+//		ArrayList<Servicio> ofertasConServicios = buscarOfertasParaPersona(getPersonaById(reservaColectiva.getPersona()));
+//		ArrayList<Long> ofertasQueSonDeHotel = new ArrayList<Long>();
+//		for(int i = 0; i<ofertasConServicios.size(); i++) {
+//			if(ofertasConServicios.get(i).getTipoOferta().equals("hotel")) { //filtrar por las que son de hotel
+//				ofertasQueSonDeHotel.add(ofertasConServicios.get(i).getIdOferta());
+//			}
+//		}
+//
+//		ArrayList<Long> ofertasPotenciales = new ArrayList<Long>(); 
+//		DAOOfertaHotel daoOfertaHotel = new DAOOfertaHotel();
+//		this.conn = darConexion();
+//		daoOfertaHotel.setConn(conn);
+//		for(int i = 0; i<ofertasQueSonDeHotel.size(); i++) {
+//			if(daoOfertaHotel.findOfertaHotelById(ofertasQueSonDeHotel.get(i)).getTipoHabitacion().trim().equals(reservaColectiva.getTipoHabitacion().trim())){ //filtrar por tipo de habitacion
+//				ofertasPotenciales.add(ofertasQueSonDeHotel.get(i));
+//			}
+//		}
+//		
+//
+//		DAOReserva daoReserva = new DAOReserva();
+//		this.conn = darConexion();
+//		daoReserva.setConn(conn);
+//		try
+//		{	
+//			ArrayList<Long> ofertas = new ArrayList<Long>();
+//			this.conn = darConexion();
+//			daoReserva.setConn( conn );
+//			for(int i = 0; i<ofertasPotenciales.size(); i++) {
+//				if(daoReserva.consultarDisponibilidad("hotel", ofertasPotenciales.get(i), reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin())) {
+//					ofertas.add(ofertasPotenciales.get(i));
+//					System.out.println("se encontro disponible");
+//				}
+//			}
+//			System.out.println("NUMERO DE OFERTAS ENCONTRADAS: " + ofertas.size());
+//			if(ofertas.size() < reservaColectiva.getCantidad()) {
+//				throw new Exception("No hay suficientes habitaciones disponibles con las especificaciones solicitadas");
+//			}
+//			else {
+//				System.out.println("Si hay reservas suficientes, reservando...");
+//				int contador = 0;
+//				while(contador < reservaColectiva.getCantidad()) {
+//					daoReserva.agregarReserva(reservaColectiva.getFechaInicio(), reservaColectiva.getFechaFin(), "hotel", ofertas.get(contador), reservaColectiva.getPersona());				
+//					contador++;
+//					System.out.println("Se agrego reserva. Total: " + contador);
+//				}
+//				System.out.println("Reserva colectiva exitosa");
+//			}
+//
+//		}
+//		catch (SQLException sqlException) {
+//			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+//			sqlException.printStackTrace();
+//			throw sqlException;
+//		} 
+//		catch (Exception exception) {
+//			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+//			exception.printStackTrace();
+//			throw exception;
+//		} 
+//		finally {
+//			try {
+//				daoOfertaHotel.cerrarRecursos();
+//				daoReserva.cerrarRecursos();
+//				if(this.conn!=null){
+//					this.conn.close();					
+//				}
+//			}
+//			catch (SQLException exception) {
+//				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+//				exception.printStackTrace();
+//				throw exception;
+//			}
+//		}	
+//	}
 
 	/**
 	 * RF8 - Cancela una reserva colectiva existente
@@ -780,5 +781,115 @@ public class AlohAndesTransactionManager {
 		}
 		return mensaje;
 	}
-
+	
+	/**
+	 * RFC10
+	 * @param inicio
+	 * @param fin
+	 * @param idOferta
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<Persona> consultarConsumo(String inicio, String fin, Long idOferta) throws SQLException{	
+		ArrayList<Persona> personas;
+		DAOPersona daoPersona = new DAOPersona();
+		try 
+		{
+			this.conn = darConexion();
+			daoPersona.setConn(conn);
+			personas = daoPersona.consultarConsumoSQL(inicio, fin, idOferta);
+			
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoPersona.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return personas;
+	}	
+	
+	/**
+	 * RFC11
+	 * @param inicio
+	 * @param fin
+	 * @param idOferta
+	 * @return
+	 * @throws SQLException
+	 */
+	public ArrayList<Persona> consultarConsumoNegado(String inicio, String fin, Long idOferta) throws SQLException{	
+		ArrayList<Persona> personas;
+		DAOPersona daoPersona = new DAOPersona();
+		try 
+		{
+			this.conn = darConexion();
+			daoPersona.setConn(conn);
+			personas = daoPersona.consultarConsumoSQLNegado(inicio, fin, idOferta);
+			
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoPersona.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return personas;
+	}	
+	
+	
+	public static String darTipoOferta(Long id) {
+		if(id <=79999) {
+			return "personaNatural";
+		}
+		else if(id <=159999) {
+			return "apartamento";
+		}
+		else if(id <=239999) {
+			return "hotel";
+		}
+		else if(id <= 319999) {
+			return "hostal";
+		}
+		else if(id <= 399999) {
+			return "vivienda";
+		}
+		else if(id <= 449999) {
+			return "evento";
+		}
+		else return null;		
+	}
 }
