@@ -12,11 +12,15 @@ import java.util.concurrent.TimeUnit;
 
 import vos.Reserva;
 import vos.VORFC12;
+import vos.VORFC12OF;
+import vos.VORFC12OP;
 import vos.VORFC13;
 
 public class DAOReserva {
 
 	public final static String USUARIO = "ISIS2304A091810";
+	
+	public final static String USUARIO2 = "ISIS2304A071810";
 
 	private ArrayList<Object> recursos;
 	private Connection conn;
@@ -55,36 +59,6 @@ public class DAOReserva {
 
 		return reserva;
 	}
-
-	/**public ArrayList<VORFC12> consultarFuncionamiento() throws SQLException{
-		ArrayList<VORFC12> rta = new ArrayList<>();
-
-		for(int i = 1; i<49;i++) {
-			String sql = String.format("SELECT *"
-+"FROM(SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA,COUNT(ID_OFERTA) AS DEMANDA, ID_OFERTA" 
-+"FROM %1$s.RESERVAS" 
-+"WHERE to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) = %2$s"  
-+"GROUP BY ID_OFERTA,to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW'))" 
-+ "ORDER BY DEMANDA desc)" 
-+"WHERE ROWNUM = 1;", USUARIO,i);
-			PreparedStatement prepStmt = conn.prepareStatement(sql);
-			recursos.add(prepStmt);
-			ResultSet rs = prepStmt.executeQuery();
-
-			if (rs.next()) {
-				reserva = convertResultSetToReserva(rs);
-			}
-		}
-	}
-	
-	public VORFC12 convertResultSetToVORFC12(ResultSet resultSet) throws SQLException {
-		Long id = resultSet.getLong("ID");
-		
-
-		VORFC12 per = new VORFC12(id);
-
-		return per;
-	}**/
 
 
 	//	public void addReserva(Reserva reserva) throws SQLException, Exception {
@@ -226,6 +200,108 @@ public class DAOReserva {
 				deleteReserva(actual);
 			}
 		}
+	}
+	
+	public VORFC12 consultarFuncionamiento()throws SQLException {
+		ArrayList<VORFC12OF> ofB = new ArrayList<>();
+		ArrayList<VORFC12OF> ofM = new ArrayList<>();
+		ArrayList<VORFC12OP> opB = new ArrayList<>();
+		ArrayList<VORFC12OP> opM = new ArrayList<>();
+
+		String sql = String.format("SELECT SEMANA, DEMANDA, ID_OFERTA " + 
+				"FROM (SELECT t.*, row_number() OVER (PARTITION BY SEMANA ORDER BY DEMANDA DESC) as seqnum " + 
+				"      FROM (SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA,COUNT(ID_OFERTA) AS DEMANDA,ID_OFERTA " + 
+				"            FROM RESERVAS " + 
+				"            GROUP BY ID_OFERTA,to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) " + 
+				"            ORDER BY DEMANDA desc)t)t " + 
+				"WHERE seqnum = 1",USUARIO2);
+		PreparedStatement prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		ResultSet rs = prepStmt.executeQuery();
+		System.out.println("-----------------B1------------------");
+		while (rs.next()) {
+			ofB.add(convertResultSetToVORFC12OF(rs));
+		}
+		
+		System.out.println("-----------------P1------------------");
+		
+		sql = String.format("SELECT SEMANA, DEMANDA, ID_OFERTA " + 
+				"FROM (SELECT t.*, row_number() OVER (PARTITION BY SEMANA ORDER BY DEMANDA asc) as seqnum " + 
+				"      FROM (SELECT to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA,COUNT(ID_OFERTA) AS DEMANDA,ID_OFERTA " + 
+				"            FROM RESERVAS " + 
+				"            GROUP BY ID_OFERTA,to_number(to_char(to_date(FECHA_INICIO,'DD/MM/YYYY'),'WW')) " + 
+				"            ORDER BY DEMANDA asc)t)t " + 
+				"WHERE seqnum = 1",USUARIO2);
+		prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		rs = prepStmt.executeQuery();
+		while (rs.next()) {
+			ofM.add(convertResultSetToVORFC12OF(rs));
+		}
+		
+		System.out.println("-----------------P2------------------");
+
+		
+		/**String sql1 = String.format("SELECT t2.SEMANA, t2.DEMANDA, t2.ID_OPERADOR  \r\n" + 
+				"				FROM (SELECT t1.*, row_number() OVER (PARTITION BY t1.SEMANA ORDER BY t1.DEMANDA DESC) AS seqnum  \r\n" + 
+				"				FROM (SELECT to_number(to_char(to_date(r1.FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA,COUNT(o1.ID_OPERADOR) AS DEMANDA,o1.ID_OPERADOR   \r\n" + 
+				"				FROM (OFERTAS o1 INNER JOIN RESERVAS r1  \r\n" + 
+				"				ON o1.ID_OFERTA = r1.ID_OFERTA) \r\n" + 
+				"				GROUP BY to_number(to_char(to_date(r1.FECHA_INICIO,'DD/MM/YYYY'),'WW')), o1.ID_OPERADOR \r\n" + 
+				"				ORDER BY DEMANDA desc)t1)t2  \r\n" + 
+				"				WHERE seqnum = 1");
+		PreparedStatement prepStmt1 = conn.prepareStatement(sql1);
+		recursos.add(prepStmt1);
+		ResultSet rs1 = prepStmt1.executeQuery();
+		System.out.println("-----------------B2------------------");
+		while (rs1.next()) {
+			opB.add(convertResultSetToVORFC12OP(rs1));
+		}
+		
+		System.out.println("-----------------P3------------------");
+
+		
+		sql = String.format("SELECT SEMANA, DEMANDA, ID_OPERADOR " + 
+				"FROM (SELECT t.*, row_number() OVER (PARTITION BY SEMANA ORDER BY DEMANDA ASC) as seqnum " + 
+				"      FROM (SELECT to_number(to_char(to_date(r1.FECHA_INICIO,'DD/MM/YYYY'),'WW')) AS SEMANA,COUNT(o1.ID_OPERADOR) AS DEMANDA,o1.ID_OPERADOR " + 
+				"            FROM(%1$s.OFERTAS o1 INNER JOIN %1$s.RESERVAS r1 " + 
+				"            ON o1.ID_OFERTA = r1.ID_OFERTA) " + 
+				"            GROUP BY to_number(to_char(to_date(r1.FECHA_INICIO,'DD/MM/YYYY'),'WW')), o1.ID_OPERADOR " + 
+				"            ORDER BY DEMANDA ASC)t)t " + 
+				"WHERE seqnum = 1",USUARIO2);
+		prepStmt = conn.prepareStatement(sql);
+		recursos.add(prepStmt);
+		rs = prepStmt.executeQuery();
+		while (rs.next()) {
+			opM.add(convertResultSetToVORFC12OP(rs));
+		}**/
+		
+		VORFC12 resp = new VORFC12(ofB,ofM,opB,opM);
+		
+		return resp;
+		
+	}
+	
+	public VORFC12OF convertResultSetToVORFC12OF(ResultSet resultSet)throws SQLException {
+
+		Long semana = resultSet.getLong("SEMANA");
+		Long demanda = resultSet.getLong("DEMANDA");
+		Long id_oferta = resultSet.getLong("ID_OFERTA");
+
+		VORFC12OF res = new VORFC12OF(semana, demanda, id_oferta);
+
+		return res;
+	}
+	
+	public VORFC12OP convertResultSetToVORFC12OP(ResultSet resultSet)throws SQLException {
+
+		Long semana = resultSet.getLong("SEMANA");
+		Long demanda = resultSet.getLong("DEMANDA");
+		Long id_operador = resultSet.getLong("ID_OPERADOR");
+
+		VORFC12OP res = new VORFC12OP(semana, demanda, id_operador);
+
+		return res;
 	}
 
 

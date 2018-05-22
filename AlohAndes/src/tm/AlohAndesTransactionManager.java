@@ -26,6 +26,7 @@ import vos.Persona;
 import vos.Reserva;
 import vos.ReservaColectiva;
 import vos.Servicio;
+import vos.VORFC12;
 import vos.VORFC13;
 
 public class AlohAndesTransactionManager {
@@ -45,6 +46,8 @@ public class AlohAndesTransactionManager {
 	private Connection conn;
 	
 	public final static String USUARIO = "ISIS2304A091810";
+	
+	public final static String USUARIO2 = "ISIS2304A071810";
 
 	public AlohAndesTransactionManager(String contextPathP) {
 
@@ -909,6 +912,47 @@ public class AlohAndesTransactionManager {
 			}
 		}
 		return personas;
+	}
+	
+	/**
+	 * RFC12
+	 * @return
+	 * @throws SQLException
+	 */
+	public VORFC12 RFC12()throws SQLException{
+		VORFC12 resp;
+		DAOReserva daoReserva = new DAOReserva();
+		try 
+		{
+			this.conn = darConexion();
+			daoReserva.setConn(conn);
+			resp = daoReserva.consultarFuncionamiento();
+			
+		}
+		catch (SQLException sqlException) {
+			System.err.println("[EXCEPTION] SQLException:" + sqlException.getMessage());
+			sqlException.printStackTrace();
+			throw sqlException;
+		} 
+		catch (Exception exception) {
+			System.err.println("[EXCEPTION] General Exception:" + exception.getMessage());
+			exception.printStackTrace();
+			throw exception;
+		} 
+		finally {
+			try {
+				daoReserva.cerrarRecursos();
+				if(this.conn!=null){
+					this.conn.close();					
+				}
+			}
+			catch (SQLException exception) {
+				System.err.println("[EXCEPTION] SQLException While Closing Resources:" + exception.getMessage());
+				exception.printStackTrace();
+				throw exception;
+			}
+		}
+		return resp;
 	}
 	
 	
